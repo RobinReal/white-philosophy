@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard White Philosophy</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/it.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Carica le librerie da CDN sicuri con HTTPS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/locale/it.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #1e3a8a;
@@ -51,6 +52,20 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .date-filter {
+                width: 100%;
+                flex-wrap: wrap;
+            }
         }
 
         .header h1 {
@@ -317,6 +332,8 @@
             display: flex;
             margin-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .tab {
@@ -352,6 +369,9 @@
             <div class="date-filter">
                 <select id="yearFilter">
                     <option value="all">Tutti gli anni</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
                 </select>
                 <select id="monthFilter">
                     <option value="all">Tutti i mesi</option>
@@ -598,7 +618,7 @@
             return value.toFixed(2) + '%';
         }
 
-        // Dashboard Data
+        // Dashboard Data (versione semplificata)
         const dashboardData = {
             cashFlowMensile: [
                 {"mese":"2023-03","totaleIncassato":900,"totalePreventivato":3700,"totaleRimanente":0,"numeroTransazioni":2},
@@ -629,29 +649,14 @@
                 {"cliente":"PAOLA EMANUELE","totaleIncassato":12000,"totalePreventivato":36000,"totaleRimanente":1000,"numeroVisite":4},
                 {"cliente":"QUAGLIARIELLO SARA","totaleIncassato":12000,"totalePreventivato":15000,"totaleRimanente":0,"numeroVisite":2},
                 {"cliente":"VALENZI DIANA","totaleIncassato":10900,"totalePreventivato":13400,"totaleRimanente":800,"numeroVisite":2},
-                {"cliente":"IELLUZZI DAVIDE","totaleIncassato":9000,"totalePreventivato":9000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"LAEZZA GIOVANNA","totaleIncassato":9000,"totalePreventivato":9000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"BUONOMO GIOVANNI","totaleIncassato":8000,"totalePreventivato":8000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"DI LEVA MADDALENA","totaleIncassato":8000,"totalePreventivato":8000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"ACONE LUDOVICA","totaleIncassato":7500,"totalePreventivato":15000,"totaleRimanente":7500,"numeroVisite":1},
-                {"cliente":"ROSSI GIOVANNI","totaleIncassato":7500,"totalePreventivato":15000,"totaleRimanente":3000,"numeroVisite":3},
-                {"cliente":"LIGUORI ILARIA","totaleIncassato":7450,"totalePreventivato":7450,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"BAVA ALBERTO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"BRANCACCIO MARCO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"MARTONE GENNARO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
-                {"cliente":"DI FUSCO GIOVANNA","totaleIncassato":6000,"totalePreventivato":6000,"totaleRimanente":0,"numeroVisite":1}
+                {"cliente":"IELLUZZI DAVIDE","totaleIncassato":9000,"totalePreventivato":9000,"totaleRimanente":0,"numeroVisite":1}
             ],
             categorieAnalisi: [
                 {"categoria":"Estetica","totaleIncassato":224810,"totalePreventivato":388620,"numeroTransazioni":47},
                 {"categoria":"Odontoiatria","totaleIncassato":78116,"totalePreventivato":205379,"numeroTransazioni":95},
                 {"categoria":"Ortodonzia","totaleIncassato":28950,"totalePreventivato":65800,"numeroTransazioni":27},
                 {"categoria":"Igiene e varie","totaleIncassato":10560,"totalePreventivato":15360,"numeroTransazioni":66},
-                {"categoria":"Chirurgia Implantare","totaleIncassato":2200,"totalePreventivato":11600,"numeroTransazioni":5},
-                {"categoria":"Conservativa","totaleIncassato":1950,"totalePreventivato":4600,"numeroTransazioni":17},
-                {"categoria":"Chirurgia orale","totaleIncassato":1200,"totalePreventivato":1400,"numeroTransazioni":6},
-                {"categoria":"Endodonzia","totaleIncassato":700,"totalePreventivato":1550,"numeroTransazioni":2},
-                {"categoria":"Protesi fissa","totaleIncassato":650,"totalePreventivato":1850,"numeroTransazioni":2},
-                {"categoria":"Gnatologia","totaleIncassato":200,"totalePreventivato":500,"numeroTransazioni":1}
+                {"categoria":"Chirurgia Implantare","totaleIncassato":2200,"totalePreventivato":11600,"numeroTransazioni":5}
             ],
             modalitaPagamento: {
                 "Contanti": 166,
@@ -662,32 +667,8 @@
             },
             statusPagamenti: {
                 "Chiuso": 225,
-                "Aperto": 41,
-                "aperto": 1,
-                "CHIUSO": 1
+                "Aperto": 41
             },
-            tipologie: {
-                "Acconto": 123,
-                "Saldo": 142
-            },
-            locations: {
-                "Sant'Agnello": 229,
-                "Napoli": 17,
-                "Milano": 19,
-                "MILANO": 2
-            },
-            tipiLavoro: [
-                {"tipo":"CURE ODONTOIATRICHE","count":90},
-                {"tipo":"DETARTRASI + LUCIDATURA","count":65},
-                {"tipo":"FACCETTA","count":42},
-                {"tipo":"CARIE SEMPLICE","count":19},
-                {"tipo":"TRATTAMENTO ORTODONTICO INVISALIGN","count":12},
-                {"tipo":"TRATTAMENTO ORTODONTICO SCHELETRICO CON DIGIUNTORE DEL PALATO","count":8},
-                {"tipo":"ESTRAZIONE CHIRURGICA","count":5},
-                {"tipo":"IMPIANTO","count":4},
-                {"tipo":"MOBILE + TRATTAMENTO ORTODONZIA FISSO","count":3},
-                {"tipo":"ENDODONTICO","count":2}
-            ],
             metriche: {
                 "totaleIncassatoAllTime": 349336,
                 "totalePreventivato": 696659,
@@ -709,3 +690,37 @@
                 {"mese":10,"nomeMese":"Ottobre","totaleIncassato":65550,"numeroTransazioni":48},
                 {"mese":11,"nomeMese":"Novembre","totaleIncassato":68800,"numeroTransazioni":45},
                 {"mese":12,"nomeMese":"Dicembre","totaleIncassato":80807,"numeroTransazioni":51}
+            ],
+            tipiLavoro: [
+                {"tipo":"CURE ODONTOIATRICHE","count":90},
+                {"tipo":"DETARTRASI + LUCIDATURA","count":65},
+                {"tipo":"FACCETTA","count":42},
+                {"tipo":"CARIE SEMPLICE","count":19},
+                {"tipo":"TRATTAMENTO ORTODONTICO INVISALIGN","count":12}
+            ],
+            categorieNelTempo: [
+                {"mese":"2023-03","categorie":[{"categoria":"Odontoiatria","totaleIncassato":400},{"categoria":"Ortodonzia","totaleIncassato":500}]},
+                {"mese":"2023-04","categorie":[{"categoria":"Chirurgia Implantare","totaleIncassato":800},{"categoria":"Odontoiatria","totaleIncassato":400}]},
+                {"mese":"2023-06","categorie":[{"categoria":"Ortodonzia","totaleIncassato":300}]},
+                {"mese":"2024-10","categorie":[{"categoria":"Estetica","totaleIncassato":52350},{"categoria":"Odontoiatria","totaleIncassato":8000}]},
+                {"mese":"2024-11","categorie":[{"categoria":"Estetica","totaleIncassato":55400},{"categoria":"Odontoiatria","totaleIncassato":10500}]},
+                {"mese":"2024-12","categorie":[{"categoria":"Estetica","totaleIncassato":65800},{"categoria":"Odontoiatria","totaleIncassato":12200}]},
+                {"mese":"2025-01","categorie":[{"categoria":"Estetica","totaleIncassato":29259},{"categoria":"Odontoiatria","totaleIncassato":8800}]},
+                {"mese":"2025-02","categorie":[{"categoria":"Estetica","totaleIncassato":35800},{"categoria":"Odontoiatria","totaleIncassato":12200}]},
+                {"mese":"2025-03","categorie":[{"categoria":"Estetica","totaleIncassato":11000},{"categoria":"Odontoiatria","totaleIncassato":5200}]}
+            ],
+            previsioni: [
+                {"mese":"2025-04","nomeMese":"Aprile","previsioneIncasso":18500},
+                {"mese":"2025-05","nomeMese":"Maggio","previsioneIncasso":22300},
+                {"mese":"2025-06","nomeMese":"Giugno","previsioneIncasso":25800},
+                {"mese":"2025-07","nomeMese":"Luglio","previsioneIncasso":24900},
+                {"mese":"2025-08","nomeMese":"Agosto","previsioneIncasso":19200},
+                {"mese":"2025-09","nomeMese":"Settembre","previsioneIncasso":21500}
+            ],
+            kpi: {
+                "crescitaAnnuale": 2234.33,
+                "tassoConversione": 50.14,
+                "rateoPagamenti": 0.87,
+                "clientiRicorrenti": 49,
+                "percentualeClientiRicorrenti": 26.20
+            }
