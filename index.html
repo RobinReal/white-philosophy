@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard White Philosophy</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/it.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #e5e7eb;
+            --accent-color: #3b82f6;
+            --text-color: #1f2937;
+            --background-color: #f9fafb;
+            --card-color: #ffffff;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .date-filter select, .date-filter button {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .date-filter button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .date-filter button:hover {
+            background-color: #152b65;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card .stat-title {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .stat-change {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .stat-card .positive {
+            color: var(--success-color);
+        }
+
+        .stat-card .negative {
+            color: var(--danger-color);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-actions button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-color);
+            color: var(--text-color);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-actions button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .data-tables {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .data-tables {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .table-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow: auto;
+        }
+
+        .table-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Utility Classes */
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Dashboard White Philosophy</h1>
+            <div class="date-filter">
+                <select id="yearFilter">
+                    <option value="all">Tutti gli anni</option>
+                </select>
+                <select id="monthFilter">
+                    <option value="all">Tutti i mesi</option>
+                    <option value="1">Gennaio</option>
+                    <option value="2">Febbraio</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Aprile</option>
+                    <option value="5">Maggio</option>
+                    <option value="6">Giugno</option>
+                    <option value="7">Luglio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Settembre</option>
+                    <option value="10">Ottobre</option>
+                    <option value="11">Novembre</option>
+                    <option value="12">Dicembre</option>
+                </select>
+                <button id="applyFilters">Applica Filtri</button>
+                <button id="resetFilters">Reset</button>
+            </div>
+        </div>
+
+        <div class="dashboard-stats" id="kpiStats">
+            <!-- KPI stats will be inserted here -->
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">Panoramica</div>
+            <div class="tab" data-tab="patients">Pazienti</div>
+            <div class="tab" data-tab="categories">Categorie</div>
+            <div class="tab" data-tab="predictions">Previsioni</div>
+        </div>
+
+        <div class="tab-content active" id="overview">
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Cash Flow Mensile</h3>
+                        <div class="chart-actions">
+                            <button id="toggleCashFlow">Mostra Preventivi</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="cashFlowChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Distribuzione per Categorie</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoriesChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Trend Stagionale</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="seasonalityChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Modalità di Pagamento</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="paymentMethodsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-tables">
+                <div class="table-card">
+                    <h3>Ultime Transazioni</h3>
+                    <table id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Categoria</th>
+                                <th>Importo</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Transaction data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-card">
+                    <h3>Status Pagamenti</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="paymentStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="patients">
+            <div class="charts-container">
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Top 10 Clienti</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="topClientsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-tables">
+                <div class="table-card full-width">
+                    <h3>Dettaglio Clienti</h3>
+                    <table id="clientsTable">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Totale Pagato</th>
+                                <th>Totale Preventivato</th>
+                                <th>Numero Visite</th>
+                                <th>Saldo Rimanente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Clients data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="categories">
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Distribuzione Categorie nel Tempo</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoriesTimeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Tipi di Lavoro Più Comuni</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="workTypesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-tables">
+                <div class="table-card full-width">
+                    <h3>Analisi per Categoria</h3>
+                    <table id="categoriesTable">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Totale Incassato</th>
+                                <th>Totale Preventivato</th>
+                                <th>Numero Transazioni</th>
+                                <th>Ticket Medio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Categories data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="predictions">
+            <div class="charts-container">
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Previsioni Cash Flow Prossimi Mesi</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="predictionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-tables">
+                <div class="table-card">
+                    <h3>Previsioni Dettagliate</h3>
+                    <table id="predictionsTable">
+                        <thead>
+                            <tr>
+                                <th>Mese</th>
+                                <th>Previsione Incasso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Predictions data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-card">
+                    <h3>Indicatori di Business</h3>
+                    <div class="mt-20">
+                        <div class="stat-card">
+                            <div class="stat-title">Crescita Annuale</div>
+                            <div class="stat-value" id="growthRate">...</div>
+                        </div>
+                        <div class="stat-card mt-20">
+                            <div class="stat-title">Tasso di Conversione</div>
+                            <div class="stat-value" id="conversionRate">...</div>
+                            <div class="stat-title">Percentuale di preventivi convertiti in pagamenti</div>
+                        </div>
+                        <div class="stat-card mt-20">
+                            <div class="stat-title">% Clienti Ricorrenti</div>
+                            <div class="stat-value" id="recurringRate">...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Dashboard White Philosophy - Sviluppata per l'analisi del cash flow di uno Studio Odontoiatrico</p>
+            <p>© 2025 White Philosophy</p>
+        </div>
+    </div>
+
+    <script>
+        // Inizializza moment.js in italiano
+        moment.locale('it');
+        
+        // Funzione per formattare valori monetari
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
+        }
+
+        // Funzione per formattare percentuali
+        function formatPercent(value) {
+            return value.toFixed(2) + '%';
+        }
+
+        // Dashboard Data
+        const dashboardData = {
+            cashFlowMensile: [
+                {"mese":"2023-03","totaleIncassato":900,"totalePreventivato":3700,"totaleRimanente":0,"numeroTransazioni":2},
+                {"mese":"2023-04","totaleIncassato":1200,"totalePreventivato":4000,"totaleRimanente":2800,"numeroTransazioni":2},
+                {"mese":"2023-06","totaleIncassato":300,"totalePreventivato":1000,"totaleRimanente":0,"numeroTransazioni":1},
+                {"mese":"2023-10","totaleIncassato":2000,"totalePreventivato":3500,"totaleRimanente":1500,"numeroTransazioni":1},
+                {"mese":"2023-11","totaleIncassato":200,"totalePreventivato":700,"totaleRimanente":0,"numeroTransazioni":1},
+                {"mese":"2024-03","totaleIncassato":1500,"totalePreventivato":7000,"totaleRimanente":0,"numeroTransazioni":1},
+                {"mese":"2024-04","totaleIncassato":500,"totalePreventivato":5500,"totaleRimanente":0,"numeroTransazioni":1},
+                {"mese":"2024-05","totaleIncassato":5900,"totalePreventivato":10000,"totaleRimanente":2500,"numeroTransazioni":3},
+                {"mese":"2024-06","totaleIncassato":6400,"totalePreventivato":27800,"totaleRimanente":6000,"numeroTransazioni":6},
+                {"mese":"2024-07","totaleIncassato":5700,"totalePreventivato":21700,"totaleRimanente":6800,"numeroTransazioni":6},
+                {"mese":"2024-09","totaleIncassato":4400,"totalePreventivato":10400,"totaleRimanente":3500,"numeroTransazioni":5},
+                {"mese":"2024-10","totaleIncassato":63550,"totalePreventivato":121450,"totaleRimanente":7050,"numeroTransazioni":47},
+                {"mese":"2024-11","totaleIncassato":68600,"totalePreventivato":136450,"totaleRimanente":1200,"numeroTransazioni":44},
+                {"mese":"2024-12","totaleIncassato":80807,"totalePreventivato":155520,"totaleRimanente":19813,"numeroTransazioni":51},
+                {"mese":"2025-01","totaleIncassato":39759,"totalePreventivato":70219,"totaleRimanente":550,"numeroTransazioni":43},
+                {"mese":"2025-02","totaleIncassato":49070,"totalePreventivato":76170,"totaleRimanente":21100,"numeroTransazioni":32},
+                {"mese":"2025-03","totaleIncassato":18550,"totalePreventivato":41550,"totaleRimanente":20500,"numeroTransazioni":22}
+            ],
+            clientiPerVolume: [
+                {"cliente":"IZZO GENNARO","totaleIncassato":20000,"totalePreventivato":39000,"totaleRimanente":0,"numeroVisite":2},
+                {"cliente":"MUSTELER VIRGEN","totaleIncassato":13700,"totalePreventivato":19700,"totaleRimanente":0,"numeroVisite":2},
+                {"cliente":"GIORDANO ANTONELLA","totaleIncassato":13000,"totalePreventivato":19000,"totaleRimanente":0,"numeroVisite":2},
+                {"cliente":"FRATANGELI ANNARITA","totaleIncassato":13000,"totalePreventivato":68000,"totaleRimanente":400,"numeroVisite":6},
+                {"cliente":"D'ANIELLO MICHELA","totaleIncassato":12500,"totalePreventivato":19000,"totaleRimanente":0,"numeroVisite":2},
+                {"cliente":"BOJIC SASA","totaleIncassato":12400,"totalePreventivato":19000,"totaleRimanente":0,"numeroVisite":3},
+                {"cliente":"PAOLA EMANUELE","totaleIncassato":12000,"totalePreventivato":36000,"totaleRimanente":1000,"numeroVisite":4},
+                {"cliente":"QUAGLIARIELLO SARA","totaleIncassato":12000,"totalePreventivato":15000,"totaleRimanente":0,"numeroVisite":2},
+                {"cliente":"VALENZI DIANA","totaleIncassato":10900,"totalePreventivato":13400,"totaleRimanente":800,"numeroVisite":2},
+                {"cliente":"IELLUZZI DAVIDE","totaleIncassato":9000,"totalePreventivato":9000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"LAEZZA GIOVANNA","totaleIncassato":9000,"totalePreventivato":9000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"BUONOMO GIOVANNI","totaleIncassato":8000,"totalePreventivato":8000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"DI LEVA MADDALENA","totaleIncassato":8000,"totalePreventivato":8000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"ACONE LUDOVICA","totaleIncassato":7500,"totalePreventivato":15000,"totaleRimanente":7500,"numeroVisite":1},
+                {"cliente":"ROSSI GIOVANNI","totaleIncassato":7500,"totalePreventivato":15000,"totaleRimanente":3000,"numeroVisite":3},
+                {"cliente":"LIGUORI ILARIA","totaleIncassato":7450,"totalePreventivato":7450,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"BAVA ALBERTO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"BRANCACCIO MARCO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"MARTONE GENNARO","totaleIncassato":7000,"totalePreventivato":7000,"totaleRimanente":0,"numeroVisite":1},
+                {"cliente":"DI FUSCO GIOVANNA","totaleIncassato":6000,"totalePreventivato":6000,"totaleRimanente":0,"numeroVisite":1}
+            ],
+            categorieAnalisi: [
+                {"categoria":"Estetica","totaleIncassato":224810,"totalePreventivato":388620,"numeroTransazioni":47},
+                {"categoria":"Odontoiatria","totaleIncassato":78116,"totalePreventivato":205379,"numeroTransazioni":95},
+                {"categoria":"Ortodonzia","totaleIncassato":28950,"totalePreventivato":65800,"numeroTransazioni":27},
+                {"categoria":"Igiene e varie","totaleIncassato":10560,"totalePreventivato":15360,"numeroTransazioni":66},
+                {"categoria":"Chirurgia Implantare","totaleIncassato":2200,"totalePreventivato":11600,"numeroTransazioni":5},
+                {"categoria":"Conservativa","totaleIncassato":1950,"totalePreventivato":4600,"numeroTransazioni":17},
+                {"categoria":"Chirurgia orale","totaleIncassato":1200,"totalePreventivato":1400,"numeroTransazioni":6},
+                {"categoria":"Endodonzia","totaleIncassato":700,"totalePreventivato":1550,"numeroTransazioni":2},
+                {"categoria":"Protesi fissa","totaleIncassato":650,"totalePreventivato":1850,"numeroTransazioni":2},
+                {"categoria":"Gnatologia","totaleIncassato":200,"totalePreventivato":500,"numeroTransazioni":1}
+            ],
+            modalitaPagamento: {
+                "Contanti": 166,
+                "Bancomat/Pos": 72,
+                "Bonifico bancario": 10,
+                "Pagodil": 15,
+                "PayPal": 1
+            },
+            statusPagamenti: {
+                "Chiuso": 225,
+                "Aperto": 41,
+                "aperto": 1,
+                "CHIUSO": 1
+            },
+            tipologie: {
+                "Acconto": 123,
+                "Saldo": 142
+            },
+            locations: {
+                "Sant'Agnello": 229,
+                "Napoli": 17,
+                "Milano": 19,
+                "MILANO": 2
+            },
+            tipiLavoro: [
+                {"tipo":"CURE ODONTOIATRICHE","count":90},
+                {"tipo":"DETARTRASI + LUCIDATURA","count":65},
+                {"tipo":"FACCETTA","count":42},
+                {"tipo":"CARIE SEMPLICE","count":19},
+                {"tipo":"TRATTAMENTO ORTODONTICO INVISALIGN","count":12},
+                {"tipo":"TRATTAMENTO ORTODONTICO SCHELETRICO CON DIGIUNTORE DEL PALATO","count":8},
+                {"tipo":"ESTRAZIONE CHIRURGICA","count":5},
+                {"tipo":"IMPIANTO","count":4},
+                {"tipo":"MOBILE + TRATTAMENTO ORTODONZIA FISSO","count":3},
+                {"tipo":"ENDODONTICO","count":2}
+            ],
+            metriche: {
+                "totaleIncassatoAllTime": 349336,
+                "totalePreventivato": 696659,
+                "totaleDaIncassare": 93313,
+                "numeroClientiUnici": 187,
+                "numeroTransazioni": 268,
+                "ticketMedio": 1303.49,
+                "valoreMedioPreventivo": 2599.47
+            },
+            stagionalita: [
+                {"mese":1,"nomeMese":"Gennaio","totaleIncassato":39759,"numeroTransazioni":43},
+                {"mese":2,"nomeMese":"Febbraio","totaleIncassato":49070,"numeroTransazioni":32},
+                {"mese":3,"nomeMese":"Marzo","totaleIncassato":20950,"numeroTransazioni":25},
+                {"mese":4,"nomeMese":"Aprile","totaleIncassato":1700,"numeroTransazioni":3},
+                {"mese":5,"nomeMese":"Maggio","totaleIncassato":5900,"numeroTransazioni":3},
+                {"mese":6,"nomeMese":"Giugno","totaleIncassato":6700,"numeroTransazioni":7},
+                {"mese":7,"nomeMese":"Luglio","totaleIncassato":5700,"numeroTransazioni":6},
+                {"mese":9,"nomeMese":"Settembre","totaleIncassato":4400,"numeroTransazioni":5},
+                {"mese":10,"nomeMese":"Ottobre","totaleIncassato":65550,"numeroTransazioni":48},
+                {"mese":11,"nomeMese":"Novembre","totaleIncassato":68800,"numeroTransazioni":45},
+                {"mese":12,"nomeMese":"Dicembre","totaleIncassato":80807,"numeroTransazioni":51}
